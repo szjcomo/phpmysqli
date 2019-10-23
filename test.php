@@ -124,6 +124,6 @@ go(function(){
 
 	} catch(\Exception $err){
 		echo $err->getMessage().PHP_EOL;
-		$db->rollback();
+		//$db->rollback();
 	}
 });
