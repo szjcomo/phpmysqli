@@ -8,30 +8,121 @@
 
 
 #### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
+```
+composer require szjcomo/phpmysqli
+```
 
 #### 使用说明
+```
+$config = new \szjcomo\mysqli\Config([
+    'host' => '127.0.0.1',
+    'port' => 3306,
+    'user' => 'xxx',
+    'password' => 'xxx',
+    'database' => 'xxx',
+    'prefix'=>'szj_',
+    'debug'	=>true
+]);
+$db = new \szjcomo\mysqli\Mysqli($config);
+//var_dump($db);
+try{
+	//查询一条数据
+	/*$info = $db->name('article')->alias('a')->leftJoin(['__ARTICLE_CATEGORY__'=>'ac'],'ac.category_id = a.category_id')
+			->field('a.article_id,a.title,a.article_desc,ac.category_name,a.category_id')
+			->where('a.article_id',70)
+			->find();
+	print_r($info);*/
+	//查询多条数据
+	/*$list = $db->name('article')->alias('a')->leftJoin(['__ARTICLE_CATEGORY__'=>'ac'],'ac.category_id = a.category_id')
+			->field('a.article_id,a.title,a.article_desc,ac.category_name,a.category_id')
+			->select();
+	print_r($list);*/
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+	//插入数据
+	/*$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>time()];
+	$result = $db->name('tags')->insert($data);
+	var_dump($result);*/
 
-#### 参与贡献
+	/*$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>date('Y-m-d H:i:s')];
+	$result = $db->name('tags')->insert($data);
+	print_r($result);*/
+	/*$result = $db->name('tags')->where('tag_id',22)->delete();
+	print_r($result);*/
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+	//批量插入
+	/*$data = [
+		['tag_name'=>'szjcomo1','admin_id'=>1,'create_time'=>date('Y-m-d')],
+		['tag_name'=>'szjcomo2','admin_id'=>1,'create_time'=>date('Y-m-d')],
+		['tag_name'=>'szjcomo3','admin_id'=>1,'create_time'=>date('Y-m-d')]
+	];
+	$result = $db->name('tags')->insertAll($data);
+	var_dump($result);*/
+	
+	//事务处理,不支持嵌套事务
+	/*$db->startTrans();
+	$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>date('Y-m-d H:i:s')];
+	$id = $db->name('tags')->insert($data);
+	$user = ['username'=>'szjcomo1','admin_id'=>1,'password'=>sha1('szjcomo'),'create_time'=>date('Y-m-d H:i:s')];
+	$user_id = $db->name('admin_user')->insert($user);
+	//$user_id = true;
+	if($id && $user_id){
+		echo '执行成功...'.PHP_EOL;
+		$db->commit();
+	} else {
+		echo '执行失败'.PHP_EOL;
+		$db->rollback();
+	}*/
 
-
-#### 码云特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5.  码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+	//更新数据
+	/*$data = ['tag_name'=>'xiaotao3'];
+	$result = $db->name('tags')->update($data,['tag_id'=>18]);
+	var_dump($result);*/
+	//删除数据
+	/*$result = $db->name('tags')->delete();
+	var_dump($result);*/
+	//查询某例的值
+	/*$result = $db->name('admin_user')->column('username','id');
+	print_r($result);*/
+	//查询某字段值
+	/*$result = $db->name('admin_user')->where('id',3)->value('username');
+	var_dump($result);*/
+	//统计查询
+	/*$result = $db->name('article')->count('article_id');
+	var_dump($result);*/
+	//求最大值
+	/*$result = $db->name('article_category')->max('category_sort');
+	var_dump($result);*/
+	//求最小值
+	/*$result = $db->name('article_category')->min('category_id');
+	var_dump($result);*/
+	//求和
+	/*$result = $db->name('article_category')->sum('category_sort');
+	var_dump($result);*/
+	//求平均值
+	/*$result = $db->name('article_category')->avg('category_sort');
+	var_dump($result);*/
+	//distinct用法
+	/*$result = $db->name('admin_user')->distinct(true)->field('password')->select();
+	var_dump($result);
+	//指定使用索引
+	$result = $db->name('admin_user')->force('password')->select();
+	var_dump($result);*/
+	//获取查询语句
+	/*$result = $db->name('admin_user')->where('id','>',1)->fetchSql(true)->select();
+	echo $result.PHP_EOL;*/
+	//实现子查询1
+	/*$sql = $db->name('admin_user')->field('username,id')->select(true);
+	$result = $db->table('('.$sql.') au')->where('id',1)->find();
+	var_dump($result);*/
+	//实现子查询2
+	/*$buildSql = $db->name('admin_user')->field('username,id')->buildSql(true);
+	$result = $db->table($buildSql.' au')->where('id',1)->field('username')->find();
+	var_dump($result);*/
+	//使用函数
+	/*$result = $db->name('admin_user')->where('id',1)->value('UNIX_TIMESTAMP(create_time)');
+	print_r($result);*/
+} catch(\Exception $err){
+	echo $err->getMessage().PHP_EOL;
+	//$db->rollback();
+}
+```
