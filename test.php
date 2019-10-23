@@ -15,10 +15,10 @@ go(function(){
 	$config = new \szjcomo\mysqli\Config([
 	    'host' => '127.0.0.1',
 	    'port' => 3306,
-	    'user' => 'szjkj',
-	    'password' => 'szjkj2019',
-	    'database' => 'szjkj',
-	    'prefix'=>'szj_',
+	    'user' => 'xxx',
+	    'password' => 'xxx',
+	    'database' => 'xxx',
+	    'prefix'=>'xxx',
 	    'debug'	=>true
 	]);
 	$db = new \szjcomo\mysqli\Mysqli($config);
