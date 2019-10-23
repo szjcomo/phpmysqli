@@ -1,0 +1,22 @@
+{
+    "name": "szjcomo/phpmysqli",
+    "description": "swoole 的 mysqli客户端",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "szjcomo",
+            "email": "814655481@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "ext-json": "*",
+        "easyswoole/spl": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "szjcomo\\mysqli\\": "src/"
+        }
+    }
+}
