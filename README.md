@@ -1,7 +1,7 @@
 # phpmysqli
 
 #### 介绍
-基于easyswoole的mysqli客户端实现
+基于swoole的mysql客户端 语法兼容thinkphp db数据库操作 (回调函数操作除外)
 
 #### 软件架构
 软件架构说明
