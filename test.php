@@ -37,18 +37,18 @@ go(function(){
 		print_r($list);*/
 
 		//插入数据
-/*		$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>time()];
+		/*$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>time()];
 		$result = $db->name('tags')->insert($data);
 		var_dump($result);*/
 
 		/*$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>date('Y-m-d H:i:s')];
 		$result = $db->name('tags')->insert($data);
 		print_r($result);*/
-		/*$result = $db->name('tags')->where('tag_id',22)->delete();
+		/*$result = $db->name('tags')->where('tag_id',2)->delete();
 		print_r($result);*/
 
 		//批量插入
-/*		$data = [
+		/*$data = [
 			['tag_name'=>'szjcomo1','admin_id'=>1,'create_time'=>date('Y-m-d')],
 			['tag_name'=>'szjcomo2','admin_id'=>1,'create_time'=>date('Y-m-d')],
 			['tag_name'=>'szjcomo3','admin_id'=>1,'create_time'=>date('Y-m-d')]
@@ -58,7 +58,7 @@ go(function(){
 
 
 		//事务处理,不支持嵌套事务
-/*		$db->startTrans();
+		/*$db->startTrans();
 		$data = ['tag_name'=>'测试一下有没有','admin_id'=>1,'create_time'=>date('Y-m-d H:i:s')];
 		$id = $db->name('tags')->insert($data);
 		$user = ['username'=>'szjcomo1','admin_id'=>1,'password'=>sha1('szjcomo'),'create_time'=>date('Y-m-d H:i:s')];
@@ -84,7 +84,7 @@ go(function(){
 		/*$result = $db->name('admin_user')->column('username','id');
 		print_r($result);*/
 		//查询某字段值
-		/*$result = $db->name('admin_user')->where('id',3)->value('username');
+		/*$result = $db->name('admin_user')->where('id',10)->value('username');
 		var_dump($result);*/
 		//统计查询
 		/*$result = $db->name('article')->count('article_id');

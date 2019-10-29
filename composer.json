@@ -18,5 +18,11 @@
         "psr-4": {
             "szjcomo\\mysqli\\": "src/"
         }
+    },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://mirrors.aliyun.com/composer/"
+        }
     }
 }

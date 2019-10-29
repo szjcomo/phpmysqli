@@ -8,10 +8,12 @@
  * |-----------------------------------------------------------------------------------
  */
 namespace szjcomo\mysqli;
+
 /**
  * 构造查询的sql语句
  */
-Class Builder {
+class Builder 
+{
     // 查询表达式映射
     protected static $exp = ['EQ' => '=', 'NEQ' => '<>', 'GT' => '>', 'EGT' => '>=', 'LT' => '<', 'ELT' => '<=', 'NOTLIKE' => 'NOT LIKE', 'NOTIN' => 'NOT IN', 'NOTBETWEEN' => 'NOT BETWEEN', 'NOTEXISTS' => 'NOT EXISTS', 'NOTNULL' => 'NOT NULL', 'NOTBETWEEN TIME' => 'NOT BETWEEN TIME'];
     // SQL表达式
@@ -43,7 +45,8 @@ Class Builder {
      * @param  bool      $strict   严格检测
      * @return string
      */
-    Public static function parseKey(Mysqli $query, $key, $strict = false) {
+    public static function parseKey(Mysqli $query, $key, $strict = false) 
+    {
         if (is_numeric($key)) {
             return $key;
         } elseif ($key instanceof Expression) {
@@ -86,7 +89,8 @@ Class Builder {
      * @param  string       $field
      * @return string
      */
-    Protected static function parseRegexp(Mysqli $query, $key, $exp, $value, $field) {
+    protected static function parseRegexp(Mysqli $query, $key, $exp, $value, $field) 
+    {
         if ($value instanceof Expression) {
             $value = $value->getValue();
         }
@@ -104,7 +108,8 @@ Class Builder {
      * @param  array     $bind      绑定数据
      * @return string
      */
-    Protected static function parseDataBind(Mysqli $query, $key, $data, $bind = []){
+    protected static function parseDataBind(Mysqli $query, $key, $data, $bind = [])
+    {
         if ($data instanceof Expression) return $data->getValue();
         $name = $query->bind($data, isset($bind[$key]) ? $bind[$key] : \PDO::PARAM_STR);
         return $name;
@@ -120,7 +125,8 @@ Class Builder {
      * @param  mixed     $fields    字段名
      * @return string
      */
-    Protected static function parseField(Mysqli $query, $fields){
+    protected static function parseField(Mysqli $query, $fields)
+    {
         if ('*' == $fields || empty($fields)) {
             $fieldsStr = '*';
         } elseif (is_array($fields)) {
@@ -146,7 +152,8 @@ Class Builder {
      * @param  mixed     $where   查询条件
      * @return string
      */
-    Protected static function parseWhere(Mysqli $query, $where){
+    protected static function parseWhere(Mysqli $query, $where)
+    {
         $whereStr = self::buildWhere($query, $where);
         return empty($whereStr) ? '' : ' WHERE ' . $whereStr;
     }
@@ -159,7 +166,8 @@ Class Builder {
      * @param  mixed     $where     查询条件
      * @return string
      */
-    Public static function buildWhere(Mysqli $query, $where) {
+    public static function buildWhere(Mysqli $query, $where) 
+    {
     	//print_r($where);die;
         if (empty($where)) {
             $where = [];
@@ -209,7 +217,8 @@ Class Builder {
      * @param    array      $binds [description]
      * @return   [type]            [description]
      */
-    Protected static function parseBuildWhereItem(Mysqli $query, $field, $val, $rule = '', $binds = []){
+    protected static function parseBuildWhereItem(Mysqli $query, $field, $val, $rule = '', $binds = [])
+    {
         // 字段分析
         $key = $field ? self::parseKey($query, $field, true) : '';
         // 查询规则和条件
@@ -276,7 +285,8 @@ Class Builder {
      * @param  string    $logic
      * @return string
      */
-    Protected static function parseLike(Mysqli $query, $key, $exp, $value, $field, $bindType, $logic){
+    protected static function parseLike(Mysqli $query, $key, $exp, $value, $field, $bindType, $logic)
+    {
         // 模糊匹配
         if (is_array($value)) {
             foreach ($value as $item) {
@@ -303,7 +313,8 @@ Class Builder {
      * @param  integer      $bindType
      * @return string
      */
-    Protected static function parseColumn(Mysqli $query, $key, $exp, array $value, $field, $bindType){
+    protected static function parseColumn(Mysqli $query, $key, $exp, array $value, $field, $bindType)
+    {
         // 字段比较查询
         list($op, $field2) = $value;
         if (!in_array($op, ['=', '<>', '>', '>=', '<', '<='])) {
@@ -326,7 +337,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseNull(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseNull(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         // NULL 查询
         return $key . ' IS ' . $exp;
     }
@@ -342,7 +354,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseBetween(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseBetween(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         // BETWEEN 查询
         $data = is_array($value) ? $value : explode(',', $value);
         $min = $query->bind($data[0], $bindType);
@@ -364,7 +377,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseExists(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseExists(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         // EXISTS 查询
         if ($value instanceof \Closure) {
             $value = self::parseClosure($query, $value, false);
@@ -389,7 +403,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseTime(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseTime(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         return $key . ' ' . substr($exp, 0, 2) . ' ' . self::parseDateTime($query, $value, $field, $bindType);
     }
 
@@ -406,7 +421,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseCompare(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseCompare(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         if (is_array($value)) {
             throw new \Exception('where express error:' . $exp . var_export($value, true));
         }
@@ -430,7 +446,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseBetweenTime(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseBetweenTime(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         if (is_string($value)) {
             $value = explode(',', $value);
         }
@@ -453,7 +470,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseIn(Mysqli $query, $key, $exp, $value, $field, $bindType){
+    protected static function parseIn(Mysqli $query, $key, $exp, $value, $field, $bindType)
+    {
         // IN 查询
         if ($value instanceof \Closure) {
             $value = self::parseClosure($query, $value, false);
@@ -482,7 +500,8 @@ Class Builder {
      * @param  bool      $show
      * @return string
      */
-    Protected static function parseClosure(Mysqli $query, $call, $show = true){
+    protected static function parseClosure(Mysqli $query, $call, $show = true)
+    {
     	throw new \Exception("暂时不支持闭包子查询");
     }
 
@@ -497,7 +516,8 @@ Class Builder {
      * @param  integer   $bindType
      * @return string
      */
-    Protected static function parseDateTime(Mysqli $query, $value, $key, $bindType = null){
+    protected static function parseDateTime(Mysqli $query, $value, $key, $bindType = null)
+    {
         $options = $query->getOptions();
         // 获取时间字段类型
         if (strpos($key, '.')) {
@@ -521,7 +541,8 @@ Class Builder {
      * @param  mixed     $limit
      * @return string
      */
-    Protected static function parseLimit(Mysqli $query, $limit){
+    protected static function parseLimit(Mysqli $query, $limit)
+    {
         return (!empty($limit) && false === strpos($limit, '(')) ? ' LIMIT ' . $limit . ' ' : '';
     }
 
@@ -534,7 +555,8 @@ Class Builder {
      * @param  mixed     $order
      * @return string
      */
-    Protected static function parseOrder(Mysqli $query, $order){
+    protected static function parseOrder(Mysqli $query, $order)
+    {
         foreach ($order as $key => $val) {
             if ($val instanceof Expression) {
                 $array[] = $val->getValue();
@@ -568,7 +590,8 @@ Class Builder {
      * @param  array     $val
      * @return string
      */
-    Protected static function parseOrderField(Mysqli $query, $key, $val){
+    protected static function parseOrderField(Mysqli $query, $key, $val)
+    {
         if (isset($val['sort'])) {
             $sort = $val['sort'];
             unset($val['sort']);
@@ -594,7 +617,8 @@ Class Builder {
      * @param  mixed     $group
      * @return string
      */
-    Protected static function parseGroup(Mysqli $query, $group){
+    protected static function parseGroup(Mysqli $query, $group)
+    {
         if (empty($group)) {
             return '';
         }
@@ -615,7 +639,8 @@ Class Builder {
      * @param  string $having
      * @return string
      */
-    Protected static function parseHaving(Mysqli $query, $having){
+    protected static function parseHaving(Mysqli $query, $having)
+    {
         return !empty($having) ? ' HAVING ' . $having : '';
     }
 
@@ -628,7 +653,8 @@ Class Builder {
      * @param  mixed     $tables        表名
      * @return string
      */
-    Protected static function parseTable(Mysqli $query, $tables){
+    protected static function parseTable(Mysqli $query, $tables)
+    {
         $item    = [];
         $options = $query->getOptions();
         foreach ((array) $tables as $key => $table) {
@@ -656,7 +682,8 @@ Class Builder {
      * @param  mixed     $distinct
      * @return string
      */
-    Protected static function parseDistinct(Mysqli $query, $distinct){
+    protected static function parseDistinct(Mysqli $query, $distinct)
+    {
         return !empty($distinct) ? ' DISTINCT ' : '';
     }
     /**
@@ -667,7 +694,8 @@ Class Builder {
      * @param    [type]       $join  [description]
      * @return   [type]              [description]
      */
-    Protected static function parseJoin(Mysqli $query,$join){
+    protected static function parseJoin(Mysqli $query,$join)
+    {
         $joinStr = '';
         if (!empty($join)) {
             foreach ($join as $item) {
@@ -699,7 +727,8 @@ Class Builder {
      * @param  mixed     $union
      * @return string
      */
-    Protected static function parseUnion(Mysqli $query, $union){
+    protected static function parseUnion(Mysqli $query, $union)
+    {
         if (empty($union)) {
             return '';
         }
@@ -723,7 +752,8 @@ Class Builder {
      * @param  string $sql sql语句
      * @return string
      */
-    Public static function parseSqlTable($sql,Mysqli $query = null){
+    public static function parseSqlTable($sql,Mysqli $query = null)
+    {
         if (false !== strpos($sql, '__')) {
             $sql = preg_replace_callback("/__([A-Z0-9_-]+)__/sU", function ($match) use(&$query) {
                 return $query->prefix . strtolower($match[1]);
@@ -741,7 +771,8 @@ Class Builder {
      * @param  mixed     $index
      * @return string
      */
-    Protected static function parseForce(Mysqli $query, $index){
+    protected static function parseForce(Mysqli $query, $index)
+    {
         if (empty($index)) return '';
         return sprintf(" FORCE INDEX ( %s ) ", is_array($index) ? implode(',', $index) : $index);
     }
@@ -755,7 +786,8 @@ Class Builder {
      * @param  bool|string   $lock
      * @return string
      */
-    Protected static function parseLock(Mysqli $query, $lock = false){
+    protected static function parseLock(Mysqli $query, $lock = false)
+    {
         if (is_bool($lock)) {
             return $lock ? ' FOR UPDATE ' : '';
         } elseif (is_string($lock) && !empty($lock)) {
@@ -772,7 +804,8 @@ Class Builder {
      * @param  string $comment
      * @return string
      */
-    Protected static function parseComment(Mysqli $query, $comment){
+    protected static function parseComment(Mysqli $query, $comment)
+    {
         if (false !== strpos($comment, '*/')) {
             $comment = strstr($comment, '*/', true);
         }
@@ -787,7 +820,8 @@ Class Builder {
      * @param  string $tableName 数据表名
      * @return array
      */
-    Public static function getFieldsBind($tableName){
+    public static function getFieldsBind($tableName)
+    {
         return self::getTableInfo($tableName, 'bind');
     }
 
@@ -802,7 +836,8 @@ Class Builder {
      * @param  array     $bind      参数绑定
      * @return array
      */
-    Protected static function parseData(Mysqli $query, $data = [], $fields = [], $bind = []){
+    protected static function parseData(Mysqli $query, $data = [], $fields = [], $bind = [])
+    {
  		if (empty($data)) return [];
         $options = $query->getOptions();
         $result = [];
@@ -845,7 +880,8 @@ Class Builder {
      * @param  Query  $query  查询对象
      * @return string
      */
-    Public static function select(Mysqli $query){
+    public static function select(Mysqli $query)
+    {
         $options = $query->getOptions();
         //print_r($options);die;
         $sql =  str_replace(
@@ -878,7 +914,8 @@ Class Builder {
      * @param  bool      $replace 是否replace
      * @return string
      */
-    Public static function insert(Mysqli $query, $replace = false){
+    public static function insert(Mysqli $query, $replace = false)
+    {
         $options = $query->getOptions();
         //print_r($options);die;
         // 分析并处理数据
@@ -908,7 +945,8 @@ Class Builder {
      * @param  bool      $replace 是否replace
      * @return string
      */
-    Public static function insertAll(Mysqli $query, $dataSet, $replace = false){
+    public static function insertAll(Mysqli $query, $dataSet, $replace = false)
+    {
         $options = $query->getOptions();
         // 获取绑定信息
         $bind = [];
@@ -941,7 +979,8 @@ Class Builder {
      * @param  Query     $query  查询对象
      * @return string
      */
-    Public static function update(Mysqli $query){
+    public static function update(Mysqli $query)
+    {
         $options = $query->getOptions();
         $data = self::parseData($query, $options['data']);
         if (empty($data)) throw new \Exception('There is no data to update, please check the parameters...');
@@ -970,7 +1009,8 @@ Class Builder {
      * @param  Query  $query  查询对象
      * @return string
      */
-    Public static function delete(Mysqli $query){
+    public static function delete(Mysqli $query)
+    {
         $options = $query->getOptions();
         if (empty($options['where'])) throw new \Exception('Delete condition must be passed in when deleting');
         return str_replace(

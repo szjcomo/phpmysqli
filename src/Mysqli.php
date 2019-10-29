@@ -11,58 +11,60 @@ namespace szjcomo\mysqli;
 
 use Swoole\Coroutine\MySQL as CoroutineMySQL;
 use Swoole\Coroutine\MySQL\Statement;
+
 /**
  * 自定义mysqli类
  */
-Class Mysqli {
+class Mysqli 
+{
 	/**
 	 * 数据库配置参数
 	 */
-	Private $config;
+	private $config;
 	/**
 	 * [$options 当前查询参数]
 	 * @var array
 	 */
-	Protected $options = [];
+	protected $options = [];
 	/**
 	 * [$lastPrepareQuery 最后执行的sql语句分析]
 	 * @var null
 	 */
-	Protected $lastPrepareQuery = null;
+	protected $lastPrepareQuery = null;
 	/**
 	 * [$lastBindParams 最后执行需要绑定的参数]
 	 * @var array
 	 */
-    Protected $lastBindParams = [];
+    protected $lastBindParams = [];
     /**
      * 当前参数绑定
      * @var array
      */
-    Protected $bind = [];
+    protected $bind = [];
     /**
      * 当前数据表前缀
      * @var string
      */
-    Public $prefix = '';
+    public $prefix = '';
     /**
      * 当前数据表名称（不含前缀）
      * @var string
      */
-    Public $name = '';
+    public $name = '';
     /**
      * swoole 协程MYSQL客户端
      */
-    Private $coroutineMysqlClient;
+    private $coroutineMysqlClient;
     /**
      * [$currentReconnectTimes 当前链接超时时间]
      * @var integer
      */
-    Private $currentReconnectTimes = 0;
+    private $currentReconnectTimes = 0;
     /**
      * [$startTransaction 事务锁]
      * @var boolean
      */
-    Private $startTransaction = false;
+    private $startTransaction = false;
 
     /**
      * [__construct 构造函数]
@@ -70,7 +72,8 @@ Class Mysqli {
      * @DateTime 2019-10-22
      * @param    Config     $config [description]
      */
-    Public function __construct(Config $config){
+    public function __construct(Config $config)
+    {
     	$this->config = $config;
         $this->coroutineMysqlClient = new CoroutineMySQL();
         $this->prefix = $this->config->getPrefix();
@@ -82,7 +85,8 @@ Class Mysqli {
      * @DateTime 2019-10-22
      * @return   [type]     [description]
      */
-    public function resetDbStatus(){
+    public function resetDbStatus()
+    {
         $this->options = [];
         $this->bind = [];
         $this->name = '';
@@ -97,7 +101,8 @@ Class Mysqli {
      * @DateTime 2019-10-22
      * @return   [type]     [description]
      */
-    function disconnect(){
+    public function disconnect()
+    {
     	if(!empty($this->coroutineMysqlClient)) $this->coroutineMysqlClient->close();
     }
 
@@ -107,7 +112,8 @@ Class Mysqli {
      * @DateTime 2019-10-22
      * @return   [type]     [description]
      */
-    function getMysqlClient(): CoroutineMySQL{
+    public function getMysqlClient(): CoroutineMySQL
+    {
         $this->connect();
         return $this->coroutineMysqlClient;
     }
@@ -119,7 +125,8 @@ Class Mysqli {
      * @return bool 是否成功开启事务
      * @throws ConnectFail
      */
-    Public function startTrans(): bool {
+    public function startTrans(): bool 
+    {
         if ($this->startTransaction) {
             return true;
         } else {
@@ -139,7 +146,8 @@ Class Mysqli {
      * @return bool 是否成功提交事务
      * @throws ConnectFail
      */
-    Public function commit(): bool {
+    public function commit(): bool 
+    {
         if ($this->startTransaction) {
             $this->connect();
             $res = $this->coroutineMysqlClient->query('commit');
@@ -160,7 +168,8 @@ Class Mysqli {
      * @return array|bool
      * @throws ConnectFail
      */
-    Public function rollback($commit = true){
+    public function rollback($commit = true)
+    {
         if ($this->startTransaction) {
             $this->connect();
             $res = $this->coroutineMysqlClient->query('rollback');
@@ -184,7 +193,8 @@ Class Mysqli {
      * @DateTime 2019-10-22
      * @return   [type]     [description]
      */
-    Public function connect(){
+    public function connect()
+    {
         if ($this->coroutineMysqlClient->connected) {
             return true;
         } else {
@@ -215,7 +225,8 @@ Class Mysqli {
      * @param    string     $sql [description]
      * @return   [type]          [description]
      */
-    Public function execResult(){
+    public function execResult()
+    {
     	try{
 	        if(isset($this->options['fetch_sql']) && $this->options['fetch_sql']){
 	        	return $this->replacePlaceHolders($this->lastPrepareQuery,$this->lastBindParams);
@@ -243,7 +254,8 @@ Class Mysqli {
      * @param array $values
      * @return bool|string
      */
-    Private function replacePlaceHolders($str, $values){
+    Private function replacePlaceHolders($str, $values)
+    {
         $i = 0;
         $newStr = "";
         if (empty($values)) {
@@ -275,7 +287,8 @@ Class Mysqli {
      * @DateTime 2019-10-22
      * @return   [type]     [description]
      */
-    Protected function debug($start_time,$endTime){
+    protected function debug($start_time,$endTime)
+    {
         $debug = $this->config->getDebug();
         if($debug) {
         	$execstr = 'Executed ( %s ) ;Elapsed time:%01.2f ms'.PHP_EOL;
@@ -292,7 +305,8 @@ Class Mysqli {
      * @throws ConnectFail 链接失败时请外部捕获该异常进行处理
      * @throws PrepareQueryFail 如判断传入语句不合法请捕获此错误
      */
-    Public function rawQuery($query, array $bindParams = []){
+    public function rawQuery($query, array $bindParams = [])
+    {
     	$this->lastPrepareQuery = $query;
     	$this->lastBindParams   = $bindParams;
         return $this->execResult();
@@ -305,7 +319,8 @@ Class Mysqli {
 	 * @param    [type]     $data [description]
 	 * @return   [type]           [description]
 	 */
-	Public function select($fetch_sql = false){
+	public function select($fetch_sql = false)
+    {
 		if($fetch_sql === true) $this->fetchSql($fetch_sql);
 		$this->parseOptions();
 		$this->HandlerFinalSql(Builder::select($this));
@@ -319,7 +334,8 @@ Class Mysqli {
 	 * @param    string     $sql [description]
 	 * @return   [type]          [description]
 	 */
-	Public function HandlerFinalSql(string $sql,$that = null){
+	public function HandlerFinalSql(string $sql,$that = null)
+    {
 		try{
 			$tmparr = [];
 			$params = [];
@@ -355,13 +371,14 @@ Class Mysqli {
 	 * @param    string     $tableName [description]
 	 * @return   [type]                [description]
 	 */
-	Public function find(bool $fetch_sql = false) {
+	public function find(bool $fetch_sql = false) 
+    {
 		if($fetch_sql === true) $this->fetchSql($fetch_sql);
 		$this->limit(1);
 		$this->parseOptions();
 		$this->HandlerFinalSql(Builder::select($this));
 		$result = $this->execResult();
-		if(is_array($result)) return $result[0];
+		if(is_array($result) && !empty($result)) return $result[0];
 		return $result;
 	}
 	/**
@@ -372,7 +389,8 @@ Class Mysqli {
 	 * @param    array      $data      [description]
 	 * @return   [type]                [description]
 	 */
-	Public function insert(array $data = [], $replace = false, $getLastInsID = false, $sequence = null){
+	public function insert(array $data = [], $replace = false, $getLastInsID = false, $sequence = null)
+    {
 		$this->parseOptions();
 		$this->options['data'] = array_merge($this->options['data'], $data);
 		$this->HandlerFinalSql(Builder::insert($this));
@@ -394,7 +412,8 @@ Class Mysqli {
      * @param  integer   $limit   每次写入数据限制
      * @return integer|string
      */
-    Public function insertAll(array $dataSet = [], $replace = false, $limit = null){
+    public function insertAll(array $dataSet = [], $replace = false, $limit = null)
+    {
         $this->parseOptions();
         if (empty($dataSet)) {
             $dataSet = $this->options['data'];
@@ -419,7 +438,8 @@ Class Mysqli {
 	 * @param    array      $where     [description]
 	 * @return   [type]                [description]
 	 */
-	Public function update($data = [],array $where = []){
+	public function update($data = [],array $where = [])
+    {
         $this->parseOptions();
         $this->options['data'] = array_merge($this->options['data'], $data);
      	if(!empty($where)) $this->where($where);
@@ -439,7 +459,8 @@ Class Mysqli {
      * @param  array $where 删除条件
      * @return querybuild
 	 */
-	Public function delete(array $where = []){
+	public function delete(array $where = [])
+    {
 		$this->parseOptions();
 		if(!empty($where)) $this->where($where);
 		$this->HandlerFinalSql(Builder::delete($this));
@@ -457,7 +478,8 @@ Class Mysqli {
 	 * @param    [type]     $field [description]
 	 * @return   [type]            [description]
 	 */
-	Public function column(string $field,$indexField = ''){
+	public function column(string $field,$indexField = '')
+    {
 		(is_string($indexField) && !empty($indexField))?$this->field($field.','.$indexField):$this->field($field);
 		$this->parseOptions();
 		$this->HandlerFinalSql(Builder::select($this));
@@ -473,7 +495,8 @@ Class Mysqli {
 	 * @param    integer    $limit [description]
 	 * @return   [type]            [description]
 	 */
-	Public function value(string $field){
+	public function value(string $field)
+    {
 		$this->field("$field as retval");
 		$result = $this->find();
 		if(is_array($result)) return isset($result['retval'])?$result['retval']:null;
@@ -487,8 +510,10 @@ Class Mysqli {
      * @param  string|Expression    $field        字段名
      * @return mixed
      */
-    Public function count(string $field = '*'){
-       return $this->value("COUNT({$field})");
+    public function count(string $field = '*')
+    {
+       $result = $this->value("COUNT({$field})");
+       return empty($result)?0:$result;
     }
     /**
      * [max 聚合-求最大值]
@@ -498,8 +523,10 @@ Class Mysqli {
      * @return mixed
      * @throws \Exception
      */
-    Public function max(string $field){
-        return $this->value("MAX({$field})");
+    public function max(string $field)
+    {
+        $result = $this->value("MAX({$field})");
+        return empty($result)?null:$result;
     }
     /**
      * [min 聚合-求最小值]
@@ -509,8 +536,10 @@ Class Mysqli {
      * @return mixed
      * @throws \Exception
      */
-    Public function min(string $field){
-        return $this->value("MIN({$field})");
+    public function min(string $field)
+    {
+        $result = $this->value("MIN({$field})");
+        return empty($result)?null:$result;
     }
     /**
      * [sum 聚合-求和]
@@ -519,8 +548,10 @@ Class Mysqli {
      * @param    string     $field [description]
      * @return   [type]            [description]
      */
-    Public function sum(string $field){
-    	return $this->value("SUM({$field})");
+    public function sum(string $field)
+    {
+    	$result = $this->value("SUM({$field})");
+        return empty($result)?0:$result;
     }
 
     /**
@@ -530,8 +561,10 @@ Class Mysqli {
      * @param    string     $field [description]
      * @return   [type]            [description]
      */
-    public function avg(string $field){
-        return $this->value("AVG({$field})");
+    public function avg(string $field)
+    {
+        $result = $this->value("AVG({$field})");
+        return empty($result)?0:$result;
     }
 
     /**
@@ -542,7 +575,8 @@ Class Mysqli {
      * @param  string $distinct 是否唯一
      * @return $this
      */
-    Public function distinct($distinct){
+    public function distinct($distinct)
+    {
         $this->options['distinct'] = $distinct;
         return $this;
     }
@@ -555,7 +589,8 @@ Class Mysqli {
      * @param  bool|string $lock 是否lock
      * @return $this
      */
-    Public function lock($lock = false){
+    public function lock($lock = false)
+    {
         $this->options['lock']   = $lock;
         return $this;
     }
@@ -568,7 +603,8 @@ Class Mysqli {
      * @param  boolean $fetch 是否返回sql
      * @return $this
      */
-    Public function fetchSql($fetch = true){
+    public function fetchSql($fetch = true)
+    {
         $this->options['fetch_sql'] = $fetch;
         return $this;
     }
@@ -580,7 +616,8 @@ Class Mysqli {
      * @param  string $force 索引名称
      * @return $this
      */
-    Public function force($force){
+    public function force($force)
+    {
         $this->options['force'] = $force;
         return $this;
     }
@@ -596,7 +633,8 @@ Class Mysqli {
      * @param  bool $clear
      * @return array
      */
-    Public function getBind($clear = true){
+    public function getBind($clear = true)
+    {
         $bind = $this->bind;
         if ($clear) {
             $this->bind = [];
@@ -612,7 +650,8 @@ Class Mysqli {
      * @param  array   $options    查询参数
      * @return void
      */
-    Protected function parseView(&$options){
+    protected function parseView(&$options)
+    {
         if (!isset($options['map'])) return;
         foreach (['AND', 'OR'] as $logic) {
             if (isset($options['where'][$logic])) {
@@ -659,7 +698,8 @@ Class Mysqli {
      * @param  string $name
      * @return $this
      */
-    Public function name($name){
+    public function name($name)
+    {
         $this->name = $name;
         return $this;
     }
@@ -672,7 +712,8 @@ Class Mysqli {
      * @param  mixed $table 表名
      * @return $this
      */
-    Public function table($table){
+    public function table($table)
+    {
         if (is_string($table)) {
             if (strpos($table, ')')) {
                 // 子查询
@@ -718,7 +759,8 @@ Class Mysqli {
      * @return string
      * @throws Exception
      */
-    Public function buildSql($sub = true){
+    public function buildSql($sub = true)
+    {
         return $sub ? '( ' . $this->select(true). ' )' : $this->select(true);
     }
 
@@ -730,7 +772,8 @@ Class Mysqli {
      * @param  array|string $alias 数据表别名
      * @return $this
      */
-    Public function alias($alias){
+    public function alias($alias)
+    {
         if (is_array($alias)) {
             foreach ($alias as $key => $val) {
                 if (false !== strpos($key, '__')) {
@@ -762,7 +805,8 @@ Class Mysqli {
      * @param  string $sql sql语句
      * @return string
      */
-    Public function parseSqlTable($sql){
+    public function parseSqlTable($sql)
+    {
         if (false !== strpos($sql, '__')) {
             $sql = preg_replace_callback("/__([A-Z0-9_-]+)__/sU", function ($match) {
                 return $this->prefix . strtolower($match[1]);
@@ -779,7 +823,8 @@ Class Mysqli {
      * @param  string $name
      * @return string
      */
-    Public function getTable($name = ''){
+    public function getTable($name = '')
+    {
         if (empty($name) && isset($this->options['table'])) {
             return $this->options['table'];
         }
@@ -792,7 +837,8 @@ Class Mysqli {
      * @access protected
      * @return array
      */
-    Protected function parseOptions(){
+    protected function parseOptions()
+    {
         $options = $this->getOptions();
         // 获取数据表
         if (empty($options['table'])) {
@@ -849,7 +895,8 @@ Class Mysqli {
 	 * @DateTime 2019-10-17
 	 * @return   [type]     [description]
 	 */
-	Public function getLastQuery(){
+	public function getLastQuery()
+    {
 		return $this->lastQuery;
 	}
 	/**
@@ -858,7 +905,8 @@ Class Mysqli {
 	 * @DateTime 2019-10-17
 	 * @return   [type]     [description]
 	 */
-	Public function getLastPrepareQuery():?string{
+	public function getLastPrepareQuery():?string
+    {
 		return $this->lastPrepareQuery;
 	}
 	/**
@@ -867,7 +915,8 @@ Class Mysqli {
 	 * @DateTime 2019-10-17
 	 * @return   [type]     [description]
 	 */
-	Public function getLastBindParams(){
+	public function getLastBindParams()
+    {
 		return $this->lastBindParams;
 	}
 	/**
@@ -876,7 +925,8 @@ Class Mysqli {
 	 * @DateTime 2019-10-17
 	 * @return   [type]     [description]
 	 */
-	Public function getLastQueryOptions():array{
+	public function getLastQueryOptions():array
+    {
 		return $this->lastQueryOptions;
 	}
 
@@ -886,7 +936,8 @@ Class Mysqli {
 	 * @DateTime 2019-10-17
 	 * @return   [type]     [description]
 	 */
-	Public function reset(){
+	public function reset()
+    {
 		//$this->
 	}
 
@@ -900,7 +951,8 @@ Class Mysqli {
 	 * @param  mixed $value 表达式
 	 * @return Expression
 	 */
-	Public function raw($value){
+	public function raw($value)
+    {
 	    return new Expression($value);
 	}
 
@@ -914,7 +966,8 @@ Class Mysqli {
      * @param  string  $name  绑定名称
      * @return $this|string
      */
-    Public function bind($value, $type = \PDO::PARAM_STR, $name = null){
+    public function bind($value, $type = \PDO::PARAM_STR, $name = null)
+    {
         if (is_array($value)) {
             $this->bind = array_merge($this->bind, $value);
         } else {
@@ -933,7 +986,8 @@ Class Mysqli {
      * @param  string $name 参数名
      * @return mixed
      */
-    Public function getOptions($name = ''){
+    public function getOptions($name = '')
+    {
         if ('' === $name) return $this->options;
         return isset($this->options[$name]) ? $this->options[$name] : null;
     }
@@ -947,7 +1001,8 @@ Class Mysqli {
      * @param  array  $bind   参数绑定
      * @return void
      */
-    Protected function bindParams(&$sql, array $bind = []){
+    protected function bindParams(&$sql, array $bind = [])
+    {
         foreach ($bind as $key => $value) {
             if (is_array($value)) {
                 $name = $this->bind($value[0], $value[1], isset($value[2]) ? $value[2] : null);
@@ -970,7 +1025,8 @@ Class Mysqli {
      * @param  string $via
      * @return $this
      */
-    Public function via($via = ''){
+    public function via($via = '')
+    {
         $this->options['via'] = $via;
         return $this;
     }
@@ -985,7 +1041,8 @@ Class Mysqli {
 	 * @param  string $logic  查询逻辑 and or xor
 	 * @return $this
 	 */
-	Public function whereRaw($where, $bind = [], $logic = 'AND'){
+	public function whereRaw($where, $bind = [], $logic = 'AND')
+    {
 	    if ($bind) $this->bindParams($where, $bind);
 	    $this->options['where'][$logic][] = $this->raw($where);
 	    return $this;
@@ -999,7 +1056,8 @@ Class Mysqli {
      * @param  mixed $condition 查询条件
      * @return $this
      */
-    Public function where($field, $op = null, $condition = null){
+    public function where($field, $op = null, $condition = null)
+    {
         $param = func_get_args();
         array_shift($param);
         return $this->parseWhereExp('AND', $field, $op, $condition, $param);
@@ -1017,7 +1075,8 @@ Class Mysqli {
      * @param  string       $logic      查询逻辑 and or xor
      * @return $this
      */
-    Public function whereColumn($field1, $operator = null, $field2 = null, $logic = 'AND'){
+    public function whereColumn($field1, $operator = null, $field2 = null, $logic = 'AND')
+    {
         if (is_array($field1)) {
             foreach ($field1 as $item) {
                 $this->whereColumn($item[0], $item[1], isset($item[2]) ? $item[2] : null);
@@ -1041,7 +1100,8 @@ Class Mysqli {
      * @param  mixed $condition 查询条件
      * @return $this
      */
-    Public function whereOr($field, $op = null, $condition = null){
+    public function whereOr($field, $op = null, $condition = null)
+    {
         $param = func_get_args();
         array_shift($param);
         return $this->parseWhereExp('OR', $field, $op, $condition, $param);
@@ -1057,7 +1117,8 @@ Class Mysqli {
      * @param  mixed $condition 查询条件
      * @return $this
      */
-    Public function whereXor($field, $op = null, $condition = null){
+    public function whereXor($field, $op = null, $condition = null)
+    {
         $param = func_get_args();
         array_shift($param);
         return $this->parseWhereExp('XOR', $field, $op, $condition, $param);
@@ -1072,7 +1133,8 @@ Class Mysqli {
      * @param  string $logic 查询逻辑 and or xor
      * @return $this
      */
-    Public function whereNull($field, $logic = 'AND'){
+    public function whereNull($field, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'NULL', null, [], true);
     }
 
@@ -1085,7 +1147,8 @@ Class Mysqli {
      * @param  string $logic 查询逻辑 and or xor
      * @return $this
      */
-    Public function whereNotNull($field, $logic = 'AND'){
+    public function whereNotNull($field, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'NOTNULL', null, [], true);
     }
 
@@ -1098,7 +1161,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereExists($condition, $logic = 'AND'){
+    public function whereExists($condition, $logic = 'AND')
+    {
         if (is_string($condition)) $condition = $this->raw($condition);
         $this->options['where'][strtoupper($logic)][] = ['', 'EXISTS', $condition];
         return $this;
@@ -1113,7 +1177,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereNotExists($condition, $logic = 'AND'){
+    public function whereNotExists($condition, $logic = 'AND')
+    {
         if (is_string($condition)) $condition = $this->raw($condition);
         $this->options['where'][strtoupper($logic)][] = ['', 'NOT EXISTS', $condition];
         return $this;
@@ -1129,7 +1194,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereIn($field, $condition, $logic = 'AND'){
+    public function whereIn($field, $condition, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'IN', $condition, [], true);
     }
 
@@ -1143,7 +1209,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereNotIn($field, $condition, $logic = 'AND'){
+    public function whereNotIn($field, $condition, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'NOT IN', $condition, [], true);
     }
     /**
@@ -1156,7 +1223,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereLike($field, $condition, $logic = 'AND'){
+    public function whereLike($field, $condition, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'LIKE', $condition, [], true);
     }
 
@@ -1170,7 +1238,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereNotLike($field, $condition, $logic = 'AND'){
+    public function whereNotLike($field, $condition, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'NOT LIKE', $condition, [], true);
     }
 
@@ -1184,7 +1253,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereBetween($field, $condition, $logic = 'AND'){
+    public function whereBetween($field, $condition, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'BETWEEN', $condition, [], true);
     }
 
@@ -1198,7 +1268,8 @@ Class Mysqli {
      * @param  string $logic     查询逻辑 and or xor
      * @return $this
      */
-    Public function whereNotBetween($field, $condition, $logic = 'AND'){
+    public function whereNotBetween($field, $condition, $logic = 'AND')
+    {
         return $this->parseWhereExp($logic, $field, 'NOT BETWEEN', $condition, [], true);
     }
 
@@ -1213,7 +1284,8 @@ Class Mysqli {
      * @param  bool     $strict    严格模式
      * @return $this
      */
-    Protected function parseWhereExp($logic, $field, $op, $condition, array $param = [], $strict = false){
+    protected function parseWhereExp($logic, $field, $op, $condition, array $param = [], $strict = false)
+    {
         $logic = strtoupper($logic);
         if ($field instanceof Where) {
             $this->options['where'][$logic] = $field->parse();
@@ -1244,7 +1316,8 @@ Class Mysqli {
 	 * @param  string   $logic     查询逻辑 and or xor
 	 * @return $this
 	 */
-	Protected function parseArrayWhereItems($field, $logic){
+	protected function parseArrayWhereItems($field, $logic)
+    {
 	    if (key($field) !== 0) {
 	        $where = [];
 	        foreach ($field as $key => $val) {
@@ -1277,7 +1350,8 @@ Class Mysqli {
      * @param  array    $param     查询参数
      * @return mixed
      */
-    Protected function parseWhereItem($logic, $field, $op, $condition, $param = []){
+    protected function parseWhereItem($logic, $field, $op, $condition, $param = [])
+    {
         if (is_array($op)) {
             // 同一字段多条件查询
             array_unshift($param, $field);
@@ -1315,7 +1389,8 @@ Class Mysqli {
      * @param  string  $alias     别名前缀
      * @return $this
      */
-    Public function field($field, $except = false, $tableName = '', $prefix = '', $alias = ''){
+    public function field($field, $except = false, $tableName = '', $prefix = '', $alias = '')
+    {
         if (empty($field)) return $this;
         if ($field instanceof Expression) {
             $this->options['field'][] = $field;
@@ -1351,7 +1426,8 @@ Class Mysqli {
      * @param  string $field    字段名
      * @return $this
      */
-    Public function fieldRaw($field){
+    public function fieldRaw($field)
+    {
         $this->options['field'][] = $this->raw($field);
         return $this;
     }
@@ -1365,7 +1441,8 @@ Class Mysqli {
      * @param  mixed $value 字段值
      * @return $this
      */
-    Public function data($field, $value = null){
+    public function data($field, $value = null)
+    {
         if (is_array($field)) {
             $this->options['data'] = isset($this->options['data']) ? array_merge($this->options['data'], $field) : $field;
         } else {
@@ -1383,7 +1460,8 @@ Class Mysqli {
      * @param  string       $order 排序
      * @return $this
      */
-    Public function order($field, $order = null){
+    public function order($field, $order = null)
+    {
         if (empty($field)) {
             return $this;
         } elseif ($field instanceof Expression) {
@@ -1429,7 +1507,8 @@ Class Mysqli {
      * @param  array  $bind  参数绑定
      * @return $this
      */
-    Public function orderRaw($field, $bind = []){
+    public function orderRaw($field, $bind = [])
+    {
         if ($bind) {
             $this->bindParams($field, $bind);
         }
@@ -1447,7 +1526,8 @@ Class Mysqli {
      * @param  string       $order
      * @return $this
      */
-    Public function orderField($field, array $values, $order = ''){
+    public function orderField($field, array $values, $order = '')
+    {
         if (!empty($values)) {
             $values['sort'] = $order;
             $this->options['order'][$field] = $values;
@@ -1462,7 +1542,8 @@ Class Mysqli {
      * @param  mixed $length 查询数量
      * @return $this
      */
-    Public function limit($offset, $length = null){
+    public function limit($offset, $length = null)
+    {
         if (is_null($length) && strpos($offset, ',')) {
             list($offset, $length) = explode(',', $offset);
         }
@@ -1479,7 +1560,8 @@ Class Mysqli {
      * @param  mixed $listRows 每页数量
      * @return $this
      */
-    Public function page($page, $listRows = null){
+    public function page($page, $listRows = null)
+    {
         if (is_null($listRows) && strpos($page, ',')) {
             list($page, $listRows) = explode(',', $page);
         }
@@ -1494,7 +1576,8 @@ Class Mysqli {
      * @param  string|array $group GROUP
      * @return $this
    	 */
-    Public function group($group){
+    public function group($group)
+    {
         $this->options['group'] = $group;
         return $this;
     }
@@ -1507,7 +1590,8 @@ Class Mysqli {
      * @param  string $having having
      * @return $this
      */
-    Public function having($having){
+    public function having($having)
+    {
         $this->options['having'] = $having;
         return $this;
     }
@@ -1521,7 +1605,8 @@ Class Mysqli {
      * @param  boolean $all
      * @return $this
      */
-    Public function union($union, $all = false){
+    public function union($union, $all = false)
+    {
         if (empty($union)) return $this;
         $this->options['union']['type'] = $all ? 'UNION ALL' : 'UNION';
         if (is_array($union)) {
@@ -1540,7 +1625,8 @@ Class Mysqli {
      * @param  mixed   $union
      * @return $this
      */
-    Public function unionAll($union){
+    public function unionAll($union)
+    {
         return $this->union($union, true);
     }
 
@@ -1557,7 +1643,8 @@ Class Mysqli {
      * @param  array  $bind      参数绑定
      * @return $this
      */
-    Public function join($join, $condition = null, $type = 'INNER', $bind = []){
+    public function join($join, $condition = null, $type = 'INNER', $bind = [])
+    {
         if (empty($condition)) {
             // 如果为组数，则循环调用join
             foreach ($join as $key => $value) {
@@ -1586,13 +1673,13 @@ Class Mysqli {
      * @param  string       $alias
      * @return string
      */
-    Protected function getJoinTable($join, &$alias = null){
+    protected function getJoinTable($join, &$alias = null)
+    {
         if (is_array($join)) {
             $table = $join;
             $alias = array_shift($join);
         } else {
             $join = trim($join);
-
             if (false !== strpos($join, '(')) {
                 // 使用子查询
                 $table = $join;
@@ -1628,7 +1715,8 @@ Class Mysqli {
      * @param  array  $bind      参数绑定
      * @return $this
      */
-    public function leftJoin($join, $condition = null, $bind = []){
+    public function leftJoin($join, $condition = null, $bind = [])
+    {
         return $this->join($join, $condition, 'LEFT');
     }
 
@@ -1642,7 +1730,8 @@ Class Mysqli {
      * @param  array  $bind      参数绑定
      * @return $this
      */
-    Public function rightJoin($join, $condition = null, $bind = []){
+    public function rightJoin($join, $condition = null, $bind = [])
+    {
         return $this->join($join, $condition, 'RIGHT');
     }
 
@@ -1656,7 +1745,8 @@ Class Mysqli {
      * @param  array  $bind      参数绑定
      * @return $this
      */
-    Public function fullJoin($join, $condition = null, $bind = []){
+    public function fullJoin($join, $condition = null, $bind = [])
+    {
         return $this->join($join, $condition, 'FULL');
     }
 
@@ -1665,7 +1755,8 @@ Class Mysqli {
      * @Author   szjcomo
      * @DateTime 2019-10-22
      */
-    function __destruct(){
+    function __destruct()
+    {
         if (isset($this->coroutineMysqlClient) && $this->coroutineMysqlClient->connected) {
             $this->coroutineMysqlClient->close();
         }

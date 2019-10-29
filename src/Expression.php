@@ -8,16 +8,18 @@
  * |-----------------------------------------------------------------------------------
  */
 namespace szjcomo\mysqli;
+
 /**
  * 查询表达式实例
  */
-Class Expression {
+class Expression 
+{
     /**
      * 查询表达式
      *
      * @var string
      */
-    Protected $value;
+    protected $value;
 
     /**
      * 创建一个查询表达式
@@ -25,7 +27,8 @@ Class Expression {
      * @param  string  $value
      * @return void
      */
-    Public function __construct($value){
+    public function __construct($value)
+    {
         $this->value = $value;
     }
 
@@ -34,7 +37,8 @@ Class Expression {
      *
      * @return string
      */
-    Public function getValue(){
+    public function getValue()
+    {
         return $this->value;
     }
     /**
@@ -43,7 +47,8 @@ Class Expression {
      * @DateTime 2019-10-17
      * @return   string     [description]
      */
-    Public function __toString(){
+    public function __toString()
+    {
         return (string) $this->value;
     }
 }

@@ -12,7 +12,8 @@ namespace szjcomo\mysqli;
 
 use EasySwoole\Spl\SplBean;
 
-class Config extends SplBean {
+class Config extends SplBean 
+{
     protected $host;
     protected $user;
     protected $password;
@@ -27,11 +28,13 @@ class Config extends SplBean {
     protected $maxReconnectTimes = 3;
 
 
-    public function getPrefix(){
+    public function getPrefix()
+    {
         return $this->prefix;
     }
 
-    public function setPrefix($prefix):void{
+    public function setPrefix($prefix):void
+    {
         $this->prefix = $prefix;
     }
     /**
@@ -40,7 +43,8 @@ class Config extends SplBean {
      * @DateTime 2019-10-22
      * @return   [type]     [description]
      */
-    Public function getDebug(){
+    Public function getDebug()
+    {
         return $this->debug;
     }
 
@@ -50,7 +54,8 @@ class Config extends SplBean {
      * @DateTime 2019-10-22
      * @param    [type]     $debug [description]
      */
-    Public function setDebug($debug):void{
+    public function setDebug($debug):void
+    {
         $this->debug = $debug;
     }
 
