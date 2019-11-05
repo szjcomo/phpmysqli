@@ -482,7 +482,7 @@ class Builder
             $array = [];
             foreach ($value as $k => $v) {
                 $name    = $query->bind($v, $bindType);
-                $array[] = ':' . $name;
+                $array[] = $name;
             }
             $zone = implode(',', $array);
             $value = empty($zone) ? "''" : $zone;

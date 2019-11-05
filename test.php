@@ -15,15 +15,19 @@ go(function(){
 	$config = new \szjcomo\mysqli\Config([
 	    'host' => '127.0.0.1',
 	    'port' => 3306,
-	    'user' => 'xxx',
-	    'password' => 'xxx',
-	    'database' => 'xxx',
-	    'prefix'=>'xxx',
+	    'user' => 'szjkj',
+	    'password' => 'szjkj2019',
+	    'database' => 'szjkj',
+	    'prefix'=>'szj_',
 	    'debug'	=>true
 	]);
 	$db = new \szjcomo\mysqli\Mysqli($config);
 	//var_dump($db);
 	try{
+		//in查询用法
+		/*$result = $db->name('article')->where('article_id','not in',[1,4,5,6])->select();
+		print_r($result);*/
+
 		//查询一条数据
 		/*$info = $db->name('article')->alias('a')->leftJoin(['__ARTICLE_CATEGORY__'=>'ac'],'ac.category_id = a.category_id')
 				->field('a.article_id,a.title,a.article_desc,ac.category_name,a.category_id')
