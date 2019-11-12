@@ -17,24 +17,24 @@ use Swoole\Coroutine\MySQL\Statement;
  */
 class Mysqli 
 {
-	/**
-	 * 数据库配置参数
-	 */
-	private $config;
-	/**
-	 * [$options 当前查询参数]
-	 * @var array
-	 */
-	protected $options = [];
-	/**
-	 * [$lastPrepareQuery 最后执行的sql语句分析]
-	 * @var null
-	 */
-	protected $lastPrepareQuery = null;
-	/**
-	 * [$lastBindParams 最后执行需要绑定的参数]
-	 * @var array
-	 */
+    /**
+     * 数据库配置参数
+     */
+    private $config;
+    /**
+     * [$options 当前查询参数]
+     * @var array
+     */
+    protected $options = [];
+    /**
+     * [$lastPrepareQuery 最后执行的sql语句分析]
+     * @var null
+     */
+    protected $lastPrepareQuery = null;
+    /**
+     * [$lastBindParams 最后执行需要绑定的参数]
+     * @var array
+     */
     protected $lastBindParams = [];
     /**
      * 当前参数绑定
@@ -56,7 +56,7 @@ class Mysqli
      */
     private $coroutineMysqlClient;
     /**
-     * [$currentReconnectTimes 当前链接超时时间]
+     * [$currentReconnectTimes 当前链接超时次数]
      * @var integer
      */
     private $currentReconnectTimes = 0;
@@ -74,7 +74,7 @@ class Mysqli
      */
     public function __construct(Config $config)
     {
-    	$this->config = $config;
+        $this->config = $config;
         $this->coroutineMysqlClient = new CoroutineMySQL();
         $this->prefix = $this->config->getPrefix();
     }
@@ -90,9 +90,10 @@ class Mysqli
         $this->options = [];
         $this->bind = [];
         $this->name = '';
-     	$this->lastBindParams = [];
-     	$this->lastPrepareQuery = '';
-     	//if($this->startTransaction) $this->rollback();
+        $this->lastBindParams = [];
+        $this->lastPrepareQuery = '';
+        $this->currentReconnectTimes = 0;
+        //if($this->startTransaction) $this->rollback();
     }
 
     /**
@@ -103,7 +104,7 @@ class Mysqli
      */
     public function disconnect()
     {
-    	if(!empty($this->coroutineMysqlClient)) $this->coroutineMysqlClient->close();
+        if(!empty($this->coroutineMysqlClient)) $this->coroutineMysqlClient->close();
     }
 
     /**
@@ -208,6 +209,7 @@ class Mysqli
                     $error = $this->coroutineMysqlClient->connect_error;
                     if($this->config->getMaxReconnectTimes() > $this->currentReconnectTimes){
                         $this->currentReconnectTimes++;
+                        echo 'Start duplicate connection , This is the '.$this->currentReconnectTimes.' time'.PHP_EOL;
                         return $this->connect();
                     }
                     throw new \Exception("connect to {$this->config->getUser()}@{$this->config->getHost()} at port {$this->config->getPort()} fail: {$errno} {$error}");
@@ -227,23 +229,23 @@ class Mysqli
      */
     public function execResult()
     {
-    	try{
-	        if(isset($this->options['fetch_sql']) && $this->options['fetch_sql']){
-	        	return $this->replacePlaceHolders($this->lastPrepareQuery,$this->lastBindParams);
-	        }
-	        if (!$this->coroutineMysqlClient->connected) $this->connect();
-	        $start_time = microtime(true);
-	    	$smt = $this->coroutineMysqlClient->prepare($this->lastPrepareQuery,$this->config->getTimeout());
-	    	if($smt === false) throw new \Exception($this->coroutineMysqlClient->error);
-	        $ret = $smt->execute($this->lastBindParams,$this->config->getTimeout());
-	        $end_time = microtime(true);
-	        $this->debug($start_time,$end_time);
-	        return $ret;
-    	} catch(\Throwable $err){
-    		throw $err;
-    	} finally{
-    		$this->resetDbStatus();
-    	}
+        try{
+            if(isset($this->options['fetch_sql']) && $this->options['fetch_sql']){
+                return $this->replacePlaceHolders($this->lastPrepareQuery,$this->lastBindParams);
+            }
+            if (!$this->coroutineMysqlClient->connected) $this->connect();
+            $start_time = microtime(true);
+            $smt = $this->coroutineMysqlClient->prepare($this->lastPrepareQuery,$this->config->getTimeout());
+            if($smt === false) throw new \Exception($this->coroutineMysqlClient->error);
+            $ret = $smt->execute($this->lastBindParams,$this->config->getTimeout());
+            $end_time = microtime(true);
+            $this->debug($start_time,$end_time);
+            return $ret;
+        } catch(\Throwable $err){
+            throw $err;
+        } finally{
+            $this->resetDbStatus();
+        }
     }
 
     /**
@@ -291,8 +293,8 @@ class Mysqli
     {
         $debug = $this->config->getDebug();
         if($debug) {
-        	$execstr = 'Executed ( %s ) ;Elapsed time:%01.2f ms'.PHP_EOL;
-        	echo sprintf($execstr,$this->lastPrepareQuery,($endTime - $start_time) * 1000);
+            $execstr = 'Executed ( %s ) ;Elapsed time:%01.2f ms'.PHP_EOL;
+            echo sprintf($execstr,$this->lastPrepareQuery,($endTime - $start_time) * 1000);
         }
     }
     /**
@@ -307,100 +309,100 @@ class Mysqli
      */
     public function rawQuery($query, array $bindParams = [])
     {
-    	$this->lastPrepareQuery = $query;
-    	$this->lastBindParams   = $bindParams;
+        $this->lastPrepareQuery = $query;
+        $this->lastBindParams   = $bindParams;
         return $this->execResult();
     }
 
-	/**
-	 * [select 数据查询]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-19
-	 * @param    [type]     $data [description]
-	 * @return   [type]           [description]
-	 */
-	public function select($fetch_sql = false)
+    /**
+     * [select 数据查询]
+     * @Author   szjcomo
+     * @DateTime 2019-10-19
+     * @param    [type]     $data [description]
+     * @return   [type]           [description]
+     */
+    public function select($fetch_sql = false)
     {
-		if($fetch_sql === true) $this->fetchSql($fetch_sql);
-		$this->parseOptions();
-		$this->HandlerFinalSql(Builder::select($this));
-		return $this->execResult();
-	}
+        if($fetch_sql === true) $this->fetchSql($fetch_sql);
+        $this->parseOptions();
+        $this->HandlerFinalSql(Builder::select($this));
+        return $this->execResult();
+    }
 
-	/**
-	 * [HandlerFinalSql 生成最终的sql语句和参数]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-21
-	 * @param    string     $sql [description]
-	 * @return   [type]          [description]
-	 */
-	public function HandlerFinalSql(string $sql,$that = null)
+    /**
+     * [HandlerFinalSql 生成最终的sql语句和参数]
+     * @Author   szjcomo
+     * @DateTime 2019-10-21
+     * @param    string     $sql [description]
+     * @return   [type]          [description]
+     */
+    public function HandlerFinalSql(string $sql,$that = null)
     {
-		try{
-			$tmparr = [];
-			$params = [];
-			preg_match_all("/ThinkBind_\d{1,2}_/",$sql,$tmparr);
-			$finalSql = $sql;
-			if(!empty($tmparr) && !empty($tmparr[0])){
-				$finalSql = str_replace($tmparr[0],'?',$sql);
-				foreach($tmparr[0] as $key=>$val){
-					if(!empty($that) && $that instanceof Mysqli){
-						$params[] = $that->bind[$val][0];
-					} else {
-						$params[] = $this->bind[$val][0];
-					}
-				}
-			}
-			if(!empty($that) && $that instanceof Mysqli){
-				$that->lastBindParams = $params;
-				$that->lastPrepareQuery = $finalSql;
-			} else {
-				$this->lastBindParams = $params;
-				$this->lastPrepareQuery = $finalSql;			
-			}
-			return $this;			
-		} catch(\Throwable $err){
-			throw new \Exception($err->getMessage());
-		}
-	}
+        try{
+            $tmparr = [];
+            $params = [];
+            preg_match_all("/ThinkBind_\d{1,2}_/",$sql,$tmparr);
+            $finalSql = $sql;
+            if(!empty($tmparr) && !empty($tmparr[0])){
+                $finalSql = str_replace($tmparr[0],'?',$sql);
+                foreach($tmparr[0] as $key=>$val){
+                    if(!empty($that) && $that instanceof Mysqli){
+                        $params[] = $that->bind[$val][0];
+                    } else {
+                        $params[] = $this->bind[$val][0];
+                    }
+                }
+            }
+            if(!empty($that) && $that instanceof Mysqli){
+                $that->lastBindParams = $params;
+                $that->lastPrepareQuery = $finalSql;
+            } else {
+                $this->lastBindParams = $params;
+                $this->lastPrepareQuery = $finalSql;            
+            }
+            return $this;           
+        } catch(\Throwable $err){
+            throw new \Exception($err->getMessage());
+        }
+    }
 
-	/**
-	 * [find 查询单条数据]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-16
-	 * @param    string     $tableName [description]
-	 * @return   [type]                [description]
-	 */
-	public function find(bool $fetch_sql = false) 
+    /**
+     * [find 查询单条数据]
+     * @Author   szjcomo
+     * @DateTime 2019-10-16
+     * @param    string     $tableName [description]
+     * @return   [type]                [description]
+     */
+    public function find(bool $fetch_sql = false) 
     {
-		if($fetch_sql === true) $this->fetchSql($fetch_sql);
-		$this->limit(1);
-		$this->parseOptions();
-		$this->HandlerFinalSql(Builder::select($this));
-		$result = $this->execResult();
-		if(is_array($result) && !empty($result)) return $result[0];
-		return $result;
-	}
-	/**
-	 * [insert 数据插入]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-16
-	 * @param    string     $tableName [description]
-	 * @param    array      $data      [description]
-	 * @return   [type]                [description]
-	 */
-	public function insert(array $data = [], $replace = false, $getLastInsID = false, $sequence = null)
+        if($fetch_sql === true) $this->fetchSql($fetch_sql);
+        $this->limit(1);
+        $this->parseOptions();
+        $this->HandlerFinalSql(Builder::select($this));
+        $result = $this->execResult();
+        if(is_array($result) && !empty($result)) return $result[0];
+        return $result;
+    }
+    /**
+     * [insert 数据插入]
+     * @Author   szjcomo
+     * @DateTime 2019-10-16
+     * @param    string     $tableName [description]
+     * @param    array      $data      [description]
+     * @return   [type]                [description]
+     */
+    public function insert(array $data = [], $replace = false, $getLastInsID = false, $sequence = null)
     {
-		$this->parseOptions();
-		$this->options['data'] = array_merge($this->options['data'], $data);
-		$this->HandlerFinalSql(Builder::insert($this));
-		$ret = $this->execResult();
-		if(is_bool($ret)) {
-			if($ret === true) return $this->coroutineMysqlClient->insert_id;
-			throw new \Exception($this->coroutineMysqlClient->error);
-		}
-		return $ret;
-	}
+        $this->parseOptions();
+        $this->options['data'] = array_merge($this->options['data'], $data);
+        $this->HandlerFinalSql(Builder::insert($this));
+        $ret = $this->execResult();
+        if(is_bool($ret)) {
+            if($ret === true) return $this->coroutineMysqlClient->insert_id;
+            throw new \Exception($this->coroutineMysqlClient->error);
+        }
+        return $ret;
+    }
 
     /**
      * [insertAll 批量插入记录]
@@ -424,84 +426,84 @@ class Mysqli
         $this->HandlerFinalSql(Builder::insertAll($this,$dataSet,$replace,$limit));
         $result = $this->execResult();
         if(is_bool($result)) {
-        	if($result === true) return $this->coroutineMysqlClient->insert_id;
-        	throw new \Exception($this->coroutineMysqlClient->error);
+            if($result === true) return $this->coroutineMysqlClient->insert_id;
+            throw new \Exception($this->coroutineMysqlClient->error);
         }
         return $result;
     }
 
-	/**
-	 * [update 更新数据]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-16
-	 * @param    string     $tableName [description]
-	 * @param    array      $where     [description]
-	 * @return   [type]                [description]
-	 */
-	public function update($data = [],array $where = [])
+    /**
+     * [update 更新数据]
+     * @Author   szjcomo
+     * @DateTime 2019-10-16
+     * @param    string     $tableName [description]
+     * @param    array      $where     [description]
+     * @return   [type]                [description]
+     */
+    public function update($data = [],array $where = [])
     {
         $this->parseOptions();
         $this->options['data'] = array_merge($this->options['data'], $data);
-     	if(!empty($where)) $this->where($where);
-     	$this->HandlerFinalSql(Builder::update($this));
-     	$result = $this->execResult();
-     	if(is_bool($result)) {
-     		if($result === true) return $this->coroutineMysqlClient->affected_rows;
-     		throw new \Exception($this->coroutineMysqlClient->error);
-     	}
-     	return $result;
-	}
-	/**
-	 * [delete 删除数据]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-16
+        if(!empty($where)) $this->where($where);
+        $this->HandlerFinalSql(Builder::update($this));
+        $result = $this->execResult();
+        if(is_bool($result)) {
+            if($result === true) return $this->coroutineMysqlClient->affected_rows;
+            throw new \Exception($this->coroutineMysqlClient->error);
+        }
+        return $result;
+    }
+    /**
+     * [delete 删除数据]
+     * @Author   szjcomo
+     * @DateTime 2019-10-16
      * @access public
      * @param  array $where 删除条件
      * @return querybuild
-	 */
-	public function delete(array $where = [])
+     */
+    public function delete(array $where = [])
     {
-		$this->parseOptions();
-		if(!empty($where)) $this->where($where);
-		$this->HandlerFinalSql(Builder::delete($this));
-		$result = $this->execResult();
-		if(is_bool($result)){
-			if($result === true) return $this->coroutineMysqlClient->affected_rows;
-			throw new \Exception($this->coroutineMysqlClient->error);
-		}
-		return $result;
-	}
-	/**
-	 * [column description]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-22
-	 * @param    [type]     $field [description]
-	 * @return   [type]            [description]
-	 */
-	public function column(string $field,$indexField = '')
+        $this->parseOptions();
+        if(!empty($where)) $this->where($where);
+        $this->HandlerFinalSql(Builder::delete($this));
+        $result = $this->execResult();
+        if(is_bool($result)){
+            if($result === true) return $this->coroutineMysqlClient->affected_rows;
+            throw new \Exception($this->coroutineMysqlClient->error);
+        }
+        return $result;
+    }
+    /**
+     * [column description]
+     * @Author   szjcomo
+     * @DateTime 2019-10-22
+     * @param    [type]     $field [description]
+     * @return   [type]            [description]
+     */
+    public function column(string $field,$indexField = '')
     {
-		(is_string($indexField) && !empty($indexField))?$this->field($field.','.$indexField):$this->field($field);
-		$this->parseOptions();
-		$this->HandlerFinalSql(Builder::select($this));
-		$result = $this->execResult();
-		if(is_array($result)) return empty($indexField)?array_column($result,$field):array_column($result,$field,$indexField);
-		return $result;
-	}
-	/**
-	 * [value 获取某个字段的值]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-22
-	 * @param    string     $field [description]
-	 * @param    integer    $limit [description]
-	 * @return   [type]            [description]
-	 */
-	public function value(string $field)
+        (is_string($indexField) && !empty($indexField))?$this->field($field.','.$indexField):$this->field($field);
+        $this->parseOptions();
+        $this->HandlerFinalSql(Builder::select($this));
+        $result = $this->execResult();
+        if(is_array($result)) return empty($indexField)?array_column($result,$field):array_column($result,$field,$indexField);
+        return $result;
+    }
+    /**
+     * [value 获取某个字段的值]
+     * @Author   szjcomo
+     * @DateTime 2019-10-22
+     * @param    string     $field [description]
+     * @param    integer    $limit [description]
+     * @return   [type]            [description]
+     */
+    public function value(string $field)
     {
-		$this->field("$field as retval");
-		$result = $this->find();
-		if(is_array($result)) return isset($result['retval'])?$result['retval']:null;
-		return $result;
-	}
+        $this->field("$field as retval");
+        $result = $this->find();
+        if(is_array($result)) return isset($result['retval'])?$result['retval']:null;
+        return $result;
+    }
     /**
      * [count 聚合查询]
      * @Author   szjcomo
@@ -550,7 +552,7 @@ class Mysqli
      */
     public function sum(string $field)
     {
-    	$result = $this->value("SUM({$field})");
+        $result = $this->value("SUM({$field})");
         return empty($result)?0:$result;
     }
 
@@ -622,7 +624,7 @@ class Mysqli
         return $this;
     }
 
-	/*=========================开始执行操作分析================================*/
+    /*=========================开始执行操作分析================================*/
 
 
     /**
@@ -887,74 +889,74 @@ class Mysqli
         return $options;
     }
 
-	/*=========================实现抽像类中的方法===============================*/
+    /*=========================实现抽像类中的方法===============================*/
 
-	/**
-	 * [getLastQuery 实现抽像类中的方法]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-17
-	 * @return   [type]     [description]
-	 */
-	public function getLastQuery()
+    /**
+     * [getLastQuery 实现抽像类中的方法]
+     * @Author   szjcomo
+     * @DateTime 2019-10-17
+     * @return   [type]     [description]
+     */
+    public function getLastQuery()
     {
-		return $this->lastQuery;
-	}
-	/**
-	 * [getLastPrepareQuery 实现抽像类中的方法]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-17
-	 * @return   [type]     [description]
-	 */
-	public function getLastPrepareQuery():?string
+        return $this->lastQuery;
+    }
+    /**
+     * [getLastPrepareQuery 实现抽像类中的方法]
+     * @Author   szjcomo
+     * @DateTime 2019-10-17
+     * @return   [type]     [description]
+     */
+    public function getLastPrepareQuery():?string
     {
-		return $this->lastPrepareQuery;
-	}
-	/**
-	 * [getLastBindParams 实现抽像类中的方法]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-17
-	 * @return   [type]     [description]
-	 */
-	public function getLastBindParams()
+        return $this->lastPrepareQuery;
+    }
+    /**
+     * [getLastBindParams 实现抽像类中的方法]
+     * @Author   szjcomo
+     * @DateTime 2019-10-17
+     * @return   [type]     [description]
+     */
+    public function getLastBindParams()
     {
-		return $this->lastBindParams;
-	}
-	/**
-	 * [getLastQueryOptions 实现抽像类中的方法]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-17
-	 * @return   [type]     [description]
-	 */
-	public function getLastQueryOptions():array
+        return $this->lastBindParams;
+    }
+    /**
+     * [getLastQueryOptions 实现抽像类中的方法]
+     * @Author   szjcomo
+     * @DateTime 2019-10-17
+     * @return   [type]     [description]
+     */
+    public function getLastQueryOptions():array
     {
-		return $this->lastQueryOptions;
-	}
+        return $this->lastQueryOptions;
+    }
 
-	/**
-	 * [reset 实现抽像类中的方法]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-17
-	 * @return   [type]     [description]
-	 */
-	public function reset()
+    /**
+     * [reset 实现抽像类中的方法]
+     * @Author   szjcomo
+     * @DateTime 2019-10-17
+     * @return   [type]     [description]
+     */
+    public function reset()
     {
-		//$this->
-	}
+        //$this->
+    }
 
-	/*=========================其它辅助函数===============================*/
+    /*=========================其它辅助函数===============================*/
 
-	/**
-	 * [raw 使用表达式设置数据]
-	 * @Author   szjcomo
-	 * @DateTime 2019-10-19
-	 * @access public
-	 * @param  mixed $value 表达式
-	 * @return Expression
-	 */
-	public function raw($value)
+    /**
+     * [raw 使用表达式设置数据]
+     * @Author   szjcomo
+     * @DateTime 2019-10-19
+     * @access public
+     * @param  mixed $value 表达式
+     * @return Expression
+     */
+    public function raw($value)
     {
-	    return new Expression($value);
-	}
+        return new Expression($value);
+    }
 
     /**
      * [bind 参数绑定]
@@ -1033,20 +1035,20 @@ class Mysqli
 
     /*===============实现精简版where条件==========================*/
 
-	/**
-	 * 指定表达式查询条件
-	 * @access public
-	 * @param  string $where  查询条件
-	 * @param  array  $bind   参数绑定
-	 * @param  string $logic  查询逻辑 and or xor
-	 * @return $this
-	 */
-	public function whereRaw($where, $bind = [], $logic = 'AND')
+    /**
+     * 指定表达式查询条件
+     * @access public
+     * @param  string $where  查询条件
+     * @param  array  $bind   参数绑定
+     * @param  string $logic  查询逻辑 and or xor
+     * @return $this
+     */
+    public function whereRaw($where, $bind = [], $logic = 'AND')
     {
-	    if ($bind) $this->bindParams($where, $bind);
-	    $this->options['where'][$logic][] = $this->raw($where);
-	    return $this;
-	}
+        if ($bind) $this->bindParams($where, $bind);
+        $this->options['where'][$logic][] = $this->raw($where);
+        return $this;
+    }
 
     /**
      * 指定AND查询条件
@@ -1058,9 +1060,12 @@ class Mysqli
      */
     public function where($field, $op = null, $condition = null)
     {
-        $param = func_get_args();
-        array_shift($param);
-        return $this->parseWhereExp('AND', $field, $op, $condition, $param);
+        if(!empty($field)){
+            $param = func_get_args();
+            array_shift($param);
+            return $this->parseWhereExp('AND', $field, $op, $condition, $param);            
+        }
+        return $this;
     }
 
 
@@ -1309,35 +1314,35 @@ class Mysqli
         return $this;
     }
 
-	/**
-	 * 数组批量查询
-	 * @access protected
-	 * @param  array    $field     批量查询
-	 * @param  string   $logic     查询逻辑 and or xor
-	 * @return $this
-	 */
-	protected function parseArrayWhereItems($field, $logic)
+    /**
+     * 数组批量查询
+     * @access protected
+     * @param  array    $field     批量查询
+     * @param  string   $logic     查询逻辑 and or xor
+     * @return $this
+     */
+    protected function parseArrayWhereItems($field, $logic)
     {
-	    if (key($field) !== 0) {
-	        $where = [];
-	        foreach ($field as $key => $val) {
-	            if ($val instanceof Expression) {
-	                $where[] = [$key, 'exp', $val];
-	            } elseif (is_null($val)) {
-	                $where[] = [$key, 'NULL', ''];
-	            } else {
-	                $where[] = [$key, is_array($val) ? 'IN' : '=', $val];
-	            }
-	        }
-	    } else {
-	        // 数组批量查询
-	        $where = $field;
-	    }
-	    if (!empty($where)) {
-	        $this->options['where'][$logic] = isset($this->options['where'][$logic]) ? array_merge($this->options['where'][$logic], $where) : $where;
-	    }
-	    return $this;
-	}
+        if (key($field) !== 0) {
+            $where = [];
+            foreach ($field as $key => $val) {
+                if ($val instanceof Expression) {
+                    $where[] = [$key, 'exp', $val];
+                } elseif (is_null($val)) {
+                    $where[] = [$key, 'NULL', ''];
+                } else {
+                    $where[] = [$key, is_array($val) ? 'IN' : '=', $val];
+                }
+            }
+        } else {
+            // 数组批量查询
+            $where = $field;
+        }
+        if (!empty($where)) {
+            $this->options['where'][$logic] = isset($this->options['where'][$logic]) ? array_merge($this->options['where'][$logic], $where) : $where;
+        }
+        return $this;
+    }
 
 
     /**
@@ -1569,13 +1574,13 @@ class Mysqli
         return $this;
     }
 
-   	/**
-   	 * [group 指定group查询]
-   	 * @Author   szjcomo
-   	 * @DateTime 2019-10-19
+    /**
+     * [group 指定group查询]
+     * @Author   szjcomo
+     * @DateTime 2019-10-19
      * @param  string|array $group GROUP
      * @return $this
-   	 */
+     */
     public function group($group)
     {
         $this->options['group'] = $group;
@@ -1630,7 +1635,7 @@ class Mysqli
         return $this->union($union, true);
     }
 
-	/*===================join 查询======================*/
+    /*===================join 查询======================*/
 
     /**
      * [join 查询SQL组装 join]
@@ -1748,6 +1753,17 @@ class Mysqli
     public function fullJoin($join, $condition = null, $bind = [])
     {
         return $this->join($join, $condition, 'FULL');
+    }
+
+    /**
+     * [getConfig 获取数据库配置]
+     * @author        szjcomo
+     * @createTime 2019-11-12
+     * @return     [type]     [description]
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 
     /**
