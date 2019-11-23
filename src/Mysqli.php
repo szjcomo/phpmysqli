@@ -54,7 +54,7 @@ class Mysqli
     /**
      * swoole 协程MYSQL客户端
      */
-    private $coroutineMysqlClient;
+    protected $coroutineMysqlClient;
     /**
      * [$currentReconnectTimes 当前链接超时次数]
      * @var integer
@@ -1776,6 +1776,6 @@ class Mysqli
         if (isset($this->coroutineMysqlClient) && $this->coroutineMysqlClient->connected) {
             $this->coroutineMysqlClient->close();
         }
-        unset($this->coroutineMysqlClient);
+        $this->coroutineMysqlClient = null;
     }
 }
