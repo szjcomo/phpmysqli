@@ -341,7 +341,7 @@ class Mysqli
         try{
             $tmparr = [];
             $params = [];
-            preg_match_all("/ThinkBind_\d{1,2}_/",$sql,$tmparr);
+            preg_match_all("/ThinkBind_\d{1,3}_/",$sql,$tmparr);
             $finalSql = $sql;
             if(!empty($tmparr) && !empty($tmparr[0])){
                 $finalSql = str_replace($tmparr[0],'?',$sql);
