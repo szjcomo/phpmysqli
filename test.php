@@ -10,20 +10,59 @@
 
 require './vendor/autoload.php';
 
+
+
+
 go(function(){
+
 
 	$config = new \szjcomo\mysqli\Config([
 	    'host' => '127.0.0.1',
 	    'port' => 3306,
-	    'user' => 'szjkj',
-	    'password' => 'szjkj2019',
-	    'database' => 'szjkj',
-	    'prefix'=>'szj_',
-	    'debug'	=>true
+	    'user' => 'xxx',
+	    'password' => 'xxx',
+	    'database' => 'xxx',
+	    'prefix'=>'xxx',
+	    'debug'	=> function($sql,$params,$start_time,$end_time) {
+			echo $sql.PHP_EOL;
+			print_r($params);
+			echo ($end_time - $start_time).PHP_EOL;
+	    }
 	]);
 	$db = new \szjcomo\mysqli\Mysqli($config);
 	//var_dump($db);
 	try{
+
+
+		//or查询
+		/*$result = $db->name('article')->where('article_id',['<',100],['>',1],'or')->field('title,article_id')->select();
+		var_dump($result);*/
+
+		//whereNotIn查询
+		/*$result = $db->name('article')->whereNotIn('article_id',[1,73,76])->field('article_id,title')->select();
+		var_dump($result);*/
+
+		//whereNotLike查询
+		/*$result = $db->name('article')->whereNotLike('title','%测试%')->field('title,article_id')->select();
+		var_dump($result);	*/
+
+		//notbetween查询
+		/*$result = $db->name('article')->whereNotBetween('create_time',['2019-10-30','2019-12-30'])->field('title,article_id,create_time')->select();
+		var_dump($result);*/
+
+
+		//between查询
+		/*$result = $db->name('article')->whereBetween('create_time',['2019-10-30','2019-12-30 23:59:59'])->field('title,article_id,create_time')->select();
+		var_dump($result);*/
+
+		//wherelike查询
+/*		$result = $db->name('article')->whereLike('title','%测试%')->field('title,article_id')->select();
+		var_dump($result);
+*/
+		//wherein 查询
+/*		$result = $db->name('article')->whereIn('article_id',[1,73,76])->field('title,article_id')->select();
+		var_dump($result);*/
+
 		//in查询用法
 		/*$result = $db->name('article')->where('article_id','not in',[1,4,5,6])->select();
 		print_r($result);*/

@@ -360,7 +360,7 @@ class Builder
         $data = is_array($value) ? $value : explode(',', $value);
         $min = $query->bind($data[0], $bindType);
         $max = $query->bind($data[1], $bindType);
-        return $key . ' ' . $exp . ' :' . $min . ' AND :' . $max . ' ';
+        return $key . ' ' . $exp . ' ' . $min . ' AND ' . $max . ' ';
     }
 
 

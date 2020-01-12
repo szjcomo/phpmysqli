@@ -292,9 +292,15 @@ class Mysqli
     protected function debug($start_time,$endTime)
     {
         $debug = $this->config->getDebug();
-        if($debug) {
+        if($debug && $debug === true) {
             $execstr = 'Executed ( %s ) ;Elapsed time:%01.2f ms'.PHP_EOL;
-            echo sprintf($execstr,$this->lastPrepareQuery,($endTime - $start_time) * 1000);
+            echo sprintf($execstr,$this->lastPrepareQuery,($endTime - $start_time) * 1000);            
+        } elseif(is_callable($debug)) {
+            try {
+                call_user_func($debug,$this->lastPrepareQuery,$this->lastBindParams,$start_time,$endTime);
+            } catch(\Exception $err) {
+                echo $err->getMessage().PHP_EOL;
+            }
         }
     }
     /**
